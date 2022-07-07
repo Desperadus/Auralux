@@ -6,7 +6,5 @@
         xmlns:local="clr-namespace:Auralux"
         mc:Ignorable="d"
         Title="Auralux Hra" Height="784" Width="1200">
-    <Canvas Name="myCanvas" Focusable="True" Background="#FF151313" MouseLeftButtonDown="Klik" MouseRightButtonDown="Unklik">
-
-    </Canvas>
+    <Canvas Name="myCanvas" Focusable="True" Background="#FF151313" MouseLeftButtonDown="Klik" MouseRightButtonDown="Unklik"/>
 </Window>
