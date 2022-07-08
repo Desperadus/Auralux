@@ -34,7 +34,6 @@ namespace Auralux
         Bot[] boti;
         Planeta[] planety;
         Planeta vybrano; //planeta vybrana klikem
-        List<Jednotka> odpadky; //jednotky na smazani
         public MainWindow()
         {
             InitializeComponent();
@@ -56,7 +55,6 @@ namespace Auralux
                 foreach (Planeta planeta in planety) //zjisti na jakou se kliklo
                 {
                     if (planeta is null) break;
-                    //Trace.WriteLine($"eukleides={Math.Sqrt((sourx - planeta.px) * (sourx - planeta.px) + (soury - planeta.py) * (soury - planeta.py))} majitel planety={planeta.majitel} px a py={planeta.px} {planeta.py}  sourx a y = {sourx} {soury}");
                     if (Math.Sqrt((sourx - planeta.px) * (sourx - planeta.px) + (soury - planeta.py) * (soury - planeta.py)) < velikost / 2) //klikl na planetu
                     {
                         if (vybrano == planeta) //kliklo se na vybranou planetu
@@ -87,15 +85,9 @@ namespace Auralux
                         if (vybrano != planeta && vybrano is not null) //poslani jednotek na nejakou jinou planetu  
                         {
                             if (vybrano.majitel == planeta.majitel) kolik = Math.Min(kolik, planeta.level*100 - planeta.pjednotek); //aby to neslo pres 100/200 nebo proste hranici max kapacity
-                            for (int i = 0; i < kolik; i++)
-                            {
-                                vybrano.pjednotek--;
-                                vybrano.jednotky[vybrano.pjednotek].PoslatNaCestu(sourx, soury, planeta);
-                            }
-                            vybrano.OdeberseGraficky();
-                            vybrano.InfoSmazat();
-                            vybrano.vybrana = false;
+                            vybrano.OdesliJednotky(kolik, planeta);
                             vybrano = null;
+                            //
                         }
                     }
                 }
@@ -106,7 +98,8 @@ namespace Auralux
 
         private void Unklik(object sender, MouseButtonEventArgs e)
         {
-
+            planety[2].OdesliJednotky(planety[2].pjednotek, planety[1]);
+            
         }
         private void Engine(object sender, EventArgs e)
         {
@@ -129,7 +122,7 @@ namespace Auralux
         {
             this.planety = new Planeta[20];   //Vytvoreni planet
             int pocetplanet = 4;
-            int pocetbotu = 4;
+            int pocetbotu = 2;
             this.hrac = new Hrac(myCanvas, planety, 1);
             this.boti = new Bot[pocetbotu];
             for (int i = 0; i < pocetbotu; i++)
@@ -139,10 +132,10 @@ namespace Auralux
 
 
             velikost = 60;
-            planety[0] = new Planeta(myCanvas, 590, 380, velikost, 1, 1, hrac);
+            planety[0] = new Planeta(myCanvas, 590, 380, velikost, 0, 1, null);
             planety[1] = new Planeta(myCanvas, 300, 180, velikost, 1, 1, hrac);
-            planety[2] = new Planeta(myCanvas, 880, 180, velikost, 2, 1, boti[1]);
-            planety[3] = new Planeta(myCanvas, 590, 680, velikost, 3, 1, boti[2]);
+            planety[2] = new Planeta(myCanvas, 880, 180, velikost, 2, 1, boti[0]);
+            planety[3] = new Planeta(myCanvas, 590, 680, velikost, 3, 1, boti[1]);
 
             
 
@@ -152,20 +145,13 @@ namespace Auralux
         private void PohybJednotek() //pohyb po obezne draze, pohyb mezi a chovani pri dosahu cile
         {
 
-            List<Jednotka> odpadky = new List<Jednotka>();
             foreach (Jednotka unit in hrac.jednotky) //Pohyb jendotek hrace
             {
                 if (unit == null) break;
-                unit.PosunLetu(velikost, rychlostrotace, boti, odpadky, hrac);
+                unit.PosunLetu(velikost, rychlostrotace);
             }
-            if (odpadky is not null || odpadky.Count != 0) //vysype kos (mazani instanci mrtvych jednotek aby nepretekla pamet)
-            {
-                //Trace.WriteLine("Sype kos");
-                foreach (Jednotka mrtvajednotka in odpadky)
-                {
-                    hrac.jednotky.Remove(mrtvajednotka);
-                }
-            }
+            hrac.VysypatOdpadky();
+            
 
 
 
@@ -174,8 +160,9 @@ namespace Auralux
                 foreach (Jednotka unit in bot.jednotky)
                 {
                     if (unit == null) break;
-                    unit.PosunLetu(velikost, rychlostrotace, boti, odpadky, hrac);
+                    unit.PosunLetu(velikost, rychlostrotace);
                 }
+                bot.VysypatOdpadky();
             }
         }
 
@@ -195,6 +182,7 @@ namespace Auralux
     {
         Planeta[] planety;
         public List<Jednotka> jednotky;
+        public List<Jednotka> odpadky;
         Canvas myCanvas;
         public int celkemunits;
         public int id;
@@ -203,6 +191,7 @@ namespace Auralux
             this.myCanvas = myCanvas;
             this.planety = planety;
             this.id = id;
+            odpadky = new List<Jednotka>();
             //jednotky = new Jednotka[1000];
             jednotky = new List<Jednotka>();
             celkemunits = 0;
@@ -223,6 +212,17 @@ namespace Auralux
                     }
                 }
             }
+        }
+
+        public void VysypatOdpadky()
+        {
+            foreach(Jednotka opadek in odpadky)
+            {
+                //Trace.WriteLine(jednotky.Remove(opadek));
+                jednotky.Remove(opadek);
+                
+            }
+            odpadky.Clear();
         }
     }
     
@@ -315,6 +315,7 @@ namespace Auralux
             jednotky[pjednotek - 1] = null;
             pjednotek--;
             player.celkemunits--;
+            player.jednotky.Remove(cozabijim);
             return cozabijim;
         }
 
@@ -354,8 +355,8 @@ namespace Auralux
             else if (majitel != 0 && !vybrana) info.Content = $" Units: {pjednotek} \n Health: {zdravi}%";
             else if (majitel == 0 && kontrola > 0)
             {
-                info.Foreground = NavratBarvy.Navrat(barva);
-                info.Content = $"Obsazeno: {kontrola}%";
+                info.Foreground = NavratBarvy.Navrat(drzitel);
+                info.Content = $"Obsazeno:\n {kontrola}%";
             }
             //else if (majitel == 1 && vybrana == false) info.Content = $" Units: {pjednotek}";
         }
@@ -413,6 +414,19 @@ namespace Auralux
                 InfoSmazat();
             }
         }
+
+        public void OdesliJednotky(int kolik, Planeta planetakam)
+        {
+            for (int i = 0; i < kolik; i++)
+            {
+                pjednotek--; //snizim pocet jednotek
+                jednotky[pjednotek].PoslatNaCestu(planetakam.px, planetakam.py, planetakam); //poslu jednotku
+                jednotky[pjednotek] = null;
+            }
+            OdeberseGraficky(); //graficky se odebere vybrani
+            InfoSmazat();  //samze info - asi zbycne to tu je
+            vybrana = false;
+        }
     }
 
 
@@ -465,6 +479,7 @@ namespace Auralux
             myCanvas.Children.Add(gjednotka);
 
         }
+
         public void PoslatNaCestu(int kamx, int kamy, Planeta planetakamletim)
         {
             naceste = true;
@@ -474,12 +489,17 @@ namespace Auralux
             this.planetakamletim = planetakamletim;
         }
 
+        public void PoslatNaCestuNaPlanetu(Planeta planetakam)
+        {
+            PoslatNaCestu(planetakam.px, planetakam.py, planetakam);
+        }
+
         public void SmazZCanvasu() //smaze ji z platna
         {
             myCanvas.Children.Remove(gjednotka);
         }
 
-        public void PosunLetu(int velikost, double rychlostrotace, Bot[] boti, List<Jednotka> odpadky, Hrac hrac)
+        public void PosunLetu(int velikost, double rychlostrotace)
         {
             if (obiha == true) //jednotka obiha
             {
@@ -496,18 +516,18 @@ namespace Auralux
                 py = (py + ((kamy - py) / eukleides) * 1.5);
                 Canvas.SetTop(gjednotka, py);
                 Canvas.SetLeft(gjednotka, px);
-                SrazkaSPlanetou(boti, odpadky, hrac);
+                SrazkaSPlanetou();
                 //dopsat
             }
         }
 
-        public void SrazkaSPlanetou(Bot[] boti, List<Jednotka> odpadky, Hrac hrac)
+        public void SrazkaSPlanetou()
         {
             double vzdalenostodplanety = Math.Sqrt((px - planetakamletim.px) * (px - planetakamletim.px) + (py - planetakamletim.py) * (py - planetakamletim.py)); //eukleidovska vzdalenost
 
             if (vzdalenostodplanety < planetakamletim.velikost + 15 && planetakamletim.majitel == majitel) //jednotka se dostala do orbitu cilove vlastni planety
             {
-                planetakamletim.jednotky[planetakamletim.pjednotek] = this; //ERROR?
+                planetakamletim.jednotky[planetakamletim.pjednotek] = this;
                 planetakamletim.pjednotek++;
                 obiha = true;
                 naceste = false;
@@ -518,15 +538,17 @@ namespace Auralux
 
             }
 
-            if (vzdalenostodplanety < planetakamletim.velikost + 15 && planetakamletim.majitel != majitel && planetakamletim.majitel != 0) //jednotka se dostala do orbitu nepratelske planety
+            if (vzdalenostodplanety < planetakamletim.velikost + 15 && planetakamletim.majitel != majitel && planetakamletim.majitel != 0) //jednotka se dostala do orbitu cizi planety
             {
                 if (planetakamletim.pjednotek > 0) //ma jednotky
                 {
-                    planetakamletim.player.jednotky.Remove(planetakamletim.ZabijJednotku()); //smaze instanci //zmenit pro boty nestaci ctrl+v
+                    planetakamletim.ZabijJednotku(); //smaze instanci
 
                     SmazZCanvasu(); //Killnu jednotku co utocila
                                     
-                    odpadky.Add(this);
+                    player.odpadky.Add(this);
+                    Trace.WriteLine(player);
+                    Trace.WriteLine(player.id);
                     px = 0;
                     py = 0;
 
@@ -534,13 +556,37 @@ namespace Auralux
                 if (planetakamletim.pjednotek == 0) //nema jednotky, zdravi zacne se ubirat
                 {
                     SmazZCanvasu(); //Killnu jednotku co utocila
-                    odpadky.Add(this);
+                    player.odpadky.Add(this);
                     px = 0;
                     py = 0;
                     planetakamletim.UberZdravi(3);
 
                 }
 
+            }
+            if (vzdalenostodplanety < planetakamletim.velikost + 5 && planetakamletim.majitel == 0 && planetakamletim.drzitel == 0) //jednotka se srazila s neobsazenou planetou
+            {
+                SmazZCanvasu(); //Killnu jednotku co utocila
+                player.odpadky.Add(this);
+                px = 0;
+                py = 0;
+                planetakamletim.ObsazovaniPrazdne(3, player);
+            }
+            if (vzdalenostodplanety < planetakamletim.velikost + 5 && planetakamletim.majitel == 0 && planetakamletim.drzitel == majitel) //jednotka se srazila s neobsazenou planetou s vlastni kontrolou
+            {
+                SmazZCanvasu(); //Killnu jednotku co utocila
+                player.odpadky.Add(this);
+                px = 0;
+                py = 0;
+                planetakamletim.ObsazovaniVlastni(5);
+            }
+            if (vzdalenostodplanety < planetakamletim.velikost + 5 && planetakamletim.majitel == 0 && planetakamletim.drzitel != majitel) //jednotka se srazila s neobsazenou planetou s cizi kontrolou
+            {
+                SmazZCanvasu(); //Killnu jednotku co utocila
+                player.odpadky.Add(this);
+                px = 0;
+                py = 0;
+                planetakamletim.ObsazovaniCizi(5);
             }
         }
     }
