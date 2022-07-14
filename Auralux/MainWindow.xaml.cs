@@ -23,22 +23,23 @@ namespace Auralux
     public partial class MainWindow : Window
     {
         DispatcherTimer Timer = new DispatcherTimer();
-        MediaPlayer player = new MediaPlayer();
-        int rychlost = 1;
         int pticku = 0; //kolikrat se spustil engine (ticknul)
-        double rychlostrotace = 0.03; //pricita se k radianum
+        int rychlost = 1;
+        int lvl = 1;
         Hrac hrac;
-        int velikost; //obecna velikost
+        int velikost; //obecna zakladni velikost
         int procent; //kolik procent jednotek je vybrano
         int kolik; //kolik jednotek je vybrano po kliknuti na planetu
         Bot[] boti;
         Planeta[] planety;
         Planeta vybrano; //planeta vybrana klikem
+        Random rand;
         public MainWindow()
         {
             InitializeComponent();
             Timer.Tick += Engine;
-            Timer.Interval = TimeSpan.FromMilliseconds(5);
+            Timer.Interval = TimeSpan.FromMilliseconds(15);
+            System.Runtime.GCSettings.LatencyMode = System.Runtime.GCLatencyMode.LowLatency;
             Start();
         }
 
@@ -66,7 +67,6 @@ namespace Auralux
                             {
 
                                 vybrano.OdeberseGraficky();
-                                vybrano.InfoSmazat();
                                 vybrano.vybrana = false;
                                 vybrano = null;
                                 return;
@@ -80,13 +80,16 @@ namespace Auralux
                             kolik = (int)(vybrano.pjednotek * ((double)procent / 100));
                             vybrano.VyberseGraficky(); //udela vyberovy kruh
                             vybrano.InfoVypisPocetVyberu(kolik);
+                            return;
                         }
 
                         if (vybrano != planeta && vybrano is not null) //poslani jednotek na nejakou jinou planetu  
                         {
-                            if (vybrano.majitel == planeta.majitel) kolik = Math.Min(kolik, planeta.level*100 - planeta.pjednotek); //aby to neslo pres 100/200 nebo proste hranici max kapacity
+                            if (vybrano.majitel == planeta.majitel) kolik = Math.Min(kolik, planeta.level*100 - (planeta.pjednotek+planeta.jednotekcobude)); //aby to neslo pres 100/200 nebo proste hranici max kapacity
                             vybrano.OdesliJednotky(kolik, planeta);
+                            vybrano.OdeberseGraficky();
                             vybrano = null;
+                            return;
                             //
                         }
                     }
@@ -143,7 +146,11 @@ namespace Auralux
 
         private void ZmacklaKlavesa(object sender, KeyEventArgs e)
         {
-            if (e.Key == Key.Space) planety[2].OdesliJednotky(planety[2].pjednotek, planety[1]);
+            if (e.Key == Key.Add) 
+            {
+                rychlost = (rychlost + 1) % 4;
+                if (rychlost == 0) rychlost = 1;
+            }
             else Trace.WriteLine(e.Key);
         }
 
@@ -153,12 +160,30 @@ namespace Auralux
             PohybJednotek();
             LoopPresPlanety();
 
-            if (pticku % 30 == 0)
+            if (pticku % (72/rychlost) == 0)
             {
                 hrac.TvorbaJednotek(); //tvori jedntoky na planetach hrace
                 foreach (Bot bot in boti)
                 {
                     bot.TvorbaJednotek();
+                    
+                }
+
+            }
+            if (pticku % (432 / rychlost) == 0) //spusti ai
+            {
+                
+                foreach (Planeta planeta in planety)
+                {
+                    if (planeta is null) break;
+                    Zamichej(planeta.sousedniplanety);
+                }
+                
+                foreach (Bot bot in boti)
+                {
+                    if (bot is null) break;
+                    Spoctiohrozeni();
+                    bot.AI();
                 }
 
             }
@@ -166,24 +191,80 @@ namespace Auralux
 
         private void Start()
         {
-            this.planety = new Planeta[20];   //Vytvoreni planet
-            int pocetplanet = 4;
-            int pocetbotu = 2;
-            this.hrac = new Hrac(myCanvas, planety, 1);
-            this.boti = new Bot[pocetbotu];
-            for (int i = 0; i < pocetbotu; i++)
+            rand = new Random();
+
+            if (lvl == 0)
             {
-                boti[i] = new Bot(myCanvas, planety, i + 2);
+                planety = new Planeta[20];   //Vytvoreni planet
+                int pocetplanet = 4;
+                int pocetbotu = 2;
+                hrac = new Hrac(myCanvas, planety, 1);
+                boti = new Bot[pocetbotu];
+                for (int i = 0; i < pocetbotu; i++)
+                {
+                    boti[i] = new Bot(myCanvas, planety, i + 2);
+                }
+
+
+                velikost = 60;
+                planety[0] = new Planeta(myCanvas, 590, 380, velikost, 0, 1, 2, null);
+                planety[1] = new Planeta(myCanvas, 300, 180, velikost, 1, 1, 2, hrac);
+                planety[2] = new Planeta(myCanvas, 880, 180, velikost, 2, 1, 2, boti[0]);
+                planety[3] = new Planeta(myCanvas, 590, 680, velikost, 3, 1, 2, boti[1]);
+
+                planety[0].sousedniplanety = new[] { planety[1], planety[2], planety[3] };
+                planety[1].sousedniplanety = new[] { planety[0], planety[2], planety[3] };
+                planety[2].sousedniplanety = new[] { planety[1], planety[0], planety[3] };
+                planety[3].sousedniplanety = new[] { planety[1], planety[2], planety[0] };
+
+                /*
+                planety[4] = new Planeta(myCanvas, 390, 680, velikost, 3, 2, 2, boti[1]);
+                planety[5] = new Planeta(myCanvas, 190, 680, velikost, 3, 2, 2, boti[1]);
+                planety[6] = new Planeta(myCanvas, 790, 680, velikost, 3, 2, 2, boti[1]);
+                planety[7] = new Planeta(myCanvas, 990, 680, velikost, 3, 2, 2, boti[1]);
+                */
             }
 
 
-            velikost = 60;
-            planety[0] = new Planeta(myCanvas, 590, 380, velikost, 0, 1, 2, null);
-            planety[1] = new Planeta(myCanvas, 300, 180, velikost, 1, 1, 2, hrac);
-            planety[2] = new Planeta(myCanvas, 880, 180, velikost, 2, 1, 2, boti[0]);
-            planety[3] = new Planeta(myCanvas, 590, 680, velikost, 3, 1, 2, boti[1]);
+            if (lvl == 1)
+            {
+                planety = new Planeta[20];   //Vytvoreni planet
+                int pocetplanet = 4;
+                int pocetbotu = 2;
+                hrac = new Hrac(myCanvas, planety, 1);
+                boti = new Bot[pocetbotu];
+                for (int i = 0; i < pocetbotu; i++)
+                {
+                    boti[i] = new Bot(myCanvas, planety, i + 2);
+                }
 
-            
+
+                velikost = 50;
+                planety[0] = new Planeta(myCanvas, 590, 360, velikost, 0, 1, 2, null);
+                planety[1] = new Planeta(myCanvas, 590 - 250, 360 - 144, velikost, 1, 1, 2, hrac);
+                planety[2] = new Planeta(myCanvas, 590 + 250, 360 - 144, velikost, 2, 1, 2, boti[0]); //zelenej
+                planety[3] = new Planeta(myCanvas, 590, 360 + 288, velikost, 3, 1, 2, boti[1]);
+                planety[4] = new Planeta(myCanvas, 590, 360 - 288, velikost, 0, 1, 2, null);
+                planety[5] = new Planeta(myCanvas, 590 + 250, 360 + 144, velikost, 0, 1, 2, null);
+                planety[6] = new Planeta(myCanvas, 590 - 250, 360 + 144, velikost, 0, 1, 2, null);
+
+
+                planety[0].sousedniplanety = new[] { planety[1], planety[2], planety[3], planety[4], planety[5], planety[6] };
+                planety[1].sousedniplanety = new[] { planety[0], planety[2], planety[3], planety[4], planety[6] };
+                planety[2].sousedniplanety = new[] { planety[1], planety[0], planety[3], planety[4], planety[5] };
+                planety[3].sousedniplanety = new[] { planety[1], planety[2], planety[0], planety[5], planety[6] };
+                planety[4].sousedniplanety = new[] { planety[1], planety[2], planety[0] };
+                planety[5].sousedniplanety = new[] { planety[3], planety[2], planety[0] };
+                planety[6].sousedniplanety = new[] { planety[1], planety[3], planety[0] };
+
+                /*
+                planety[4] = new Planeta(myCanvas, 390, 680, velikost, 3, 2, 2, boti[1]);
+                planety[5] = new Planeta(myCanvas, 190, 680, velikost, 3, 2, 2, boti[1]);
+                planety[6] = new Planeta(myCanvas, 790, 680, velikost, 3, 2, 2, boti[1]);
+                planety[7] = new Planeta(myCanvas, 990, 680, velikost, 3, 2, 2, boti[1]);
+                */
+            }
+
 
             Timer.Start();
         }
@@ -194,7 +275,7 @@ namespace Auralux
             foreach (Jednotka unit in hrac.jednotky) //Pohyb jendotek hrace
             {
                 if (unit == null) break;
-                unit.PosunLetu(rychlostrotace);
+                unit.PosunLetu(rychlost);
             }
             hrac.VysypatOdpadky();
             
@@ -206,7 +287,7 @@ namespace Auralux
                 foreach (Jednotka unit in bot.jednotky)
                 {
                     if (unit == null) break;
-                    unit.PosunLetu(rychlostrotace);
+                    unit.PosunLetu(rychlost);
                 }
                 bot.VysypatOdpadky();
             }
@@ -220,26 +301,57 @@ namespace Auralux
                 if (planeta.majitel >= 1 || (planeta.majitel == 0 && planeta.drzitel != 0))
                 {
                     planeta.InfoVypispjednotek(666);
+                    if (planeta.zdravi < 70 && planeta.majitel > 1) planeta.Lecit();
                 }
             }
         }
 
+        public void Spoctiohrozeni()
+        {
+            foreach (Planeta planeta in planety)
+            {
+                int kolikohrozuje = 0;
+                if (planeta is null) break;
+                foreach (Planeta soused in planeta.sousedniplanety)
+                {
+                    if (soused.majitel != planeta.majitel) kolikohrozuje += soused.pjednotek;
+                }
+                planeta.miraohrozeni = kolikohrozuje;
+            }
+        }
+
+        public void Zamichej<T>(T[] pole)
+        {
+            if (pole == null) return;
+            int n = pole.Length;
+            while (n > 1)
+            {
+                int k = rand.Next(n--);
+                T temp = pole[n];
+                pole[n] = pole[k];
+                pole[k] = temp;
+            }
+        }
 
     }
+    
+    
     public abstract class Player
     {
-        Planeta[] planety;
+        protected Planeta[] planety;
         public List<Jednotka> jednotky;
         public List<Jednotka> odpadky;
         Canvas myCanvas;
         public int celkemunits;
         public int id;
+        public Random rand;
         public Player(Canvas myCanvas, Planeta[] planety, int id)
         {
             this.myCanvas = myCanvas;
             this.planety = planety;
             this.id = id;
             odpadky = new List<Jednotka>();
+            rand = new Random();
             //jednotky = new Jednotka[1000];
             jednotky = new List<Jednotka>();
             celkemunits = 0;
@@ -254,7 +366,7 @@ namespace Auralux
                 {
                     for (int i = 0; i < planeta.level; i++)
                     {
-                        jednotky.Add(new Jednotka(myCanvas, planeta, planeta.majitel, planeta.px + planeta.velikost / 2 + 25, planeta.py + planeta.velikost / 2 + 25, planeta.px, planeta.py));
+                        jednotky.Add(new Jednotka(myCanvas, planeta, planeta.majitel, planeta.px + planeta.velikost / 2 + 25, planeta.py + planeta.velikost / 2 + 25, planeta.px, planeta.py, rand));
                         planeta.VytvorJednotku(jednotky.Last());
                         celkemunits++;
                     }
@@ -273,8 +385,7 @@ namespace Auralux
             odpadky.Clear();
         }
     }
-    
-    
+      
     public class Hrac : Player
     {
         public Hrac(Canvas myCanvas, Planeta[] planety, int id) : base(myCanvas, planety, id)
@@ -290,6 +401,71 @@ namespace Auralux
         {
 
         }
+
+        public void AI()
+        {
+            foreach (Planeta planeta in planety) //cizi planety; 
+            {
+                if (planeta is null) break;
+                if (planeta.majitel == id || planeta.majitel == 0) continue; //planeta => bude cizi
+
+                int kolikmamokolojednotek = 0;
+                int kolikseneposlalo = 0;
+                List<Planeta> mojeplanetyokolo = new List<Planeta>();
+                foreach (Planeta soused in planeta.sousedniplanety)
+                {
+                    if (soused.majitel == id)
+                    {
+                        kolikmamokolojednotek += soused.pjednotek;
+                        mojeplanetyokolo.Add(soused);
+                    }
+                    if (kolikmamokolojednotek > planeta.pjednotek+ 40 + 25*planeta.level - planeta.zdravi/5 && rand.Next(100)>50)
+                    {
+                        
+                        foreach (Planeta mojeplaneta in mojeplanetyokolo)
+                        {
+                            kolikseneposlalo += mojeplaneta.OdesliJednotky(((planeta.pjednotek + 40 + 25 * planeta.level) / mojeplanetyokolo.Count()) + kolikseneposlalo, planeta);
+                        }
+                    }
+                }
+            }
+
+
+            foreach (Planeta planeta in planety) // moje 
+            {
+                if (planeta is null) break;
+                if (planeta.majitel != id) continue;
+                if (planeta.zdravi < 80*planeta.level) planeta.Lecit();
+
+
+
+
+                foreach (Planeta soused in planeta.sousedniplanety)
+                {
+                    int znamenko = 1;
+                    if (soused.majitel == 0 && soused.drzitel == id) znamenko = -1;
+                    if (soused.majitel == 0 && planeta.pjednotek > znamenko*(soused.kontrola / 5) + 20 && (rand.Next(100) > 50 || planeta.level == planeta.maxlevel)) //soused je 0, zabirani neobsazeny
+                    {
+                        planeta.OdesliJednotky(soused.kontrola / 5 + 20 + rand.Next(5), soused);
+                    }
+                    else if (planeta.pjednotek > 20*planeta.level && planeta.level != planeta.maxlevel && rand.Next(100) > 15) planeta.Upgrade();
+
+                    else if (soused.majitel == id && rand.Next(100) > 10) //soused jsem ja
+                    {
+                        if (planeta.miraohrozeni < soused.miraohrozeni || soused.zdravi < planeta.zdravi && planeta.pjednotek>20)
+                        {
+                            planeta.OdesliJednotky(planeta.pjednotek / 2, soused);
+                        }
+                        if (planeta.miraohrozeni == soused.miraohrozeni && (planeta.pjednotek - soused.pjednotek)>10)
+                        {
+                            planeta.OdesliJednotky((planeta.pjednotek - soused.pjednotek) / 2, soused);
+                        }
+                    }
+                }
+            }
+        }
+
+        
     }
 
 
@@ -301,6 +477,7 @@ namespace Auralux
         public Player player;
         public int zdravi;
         public int pjednotek;
+        public int jednotekcobude;
         public int velikost;
         public int level;
         public int kontrola;
@@ -310,29 +487,35 @@ namespace Auralux
         public int py;
         public Label info; //info o statusu planety
         public Ellipse gplaneta; // graficka instance planety
-        private Ellipse vyberovykruh; //okruh kdyz je vybrana planeta
-        Canvas myCanvas;
+        //Canvas myCanvas;
         public Jednotka[] jednotky;
+
+        public Planeta[] sousedniplanety;
+        public int miraohrozeni;
+
         public Planeta(Canvas myCanvas, int px, int py, int velikost, int majitel, int level, int maxlevel, Player player)
         {
             this.px = px;
             this.py = py;
             this.majitel = majitel;
-            this.myCanvas = myCanvas;
+            //this.myCanvas = myCanvas;
             this.velikost = velikost;
             this.level = level;
             this.maxlevel = maxlevel;
             this.player = player;
             zdravi = 100*level;
             pjednotek = 0;
-            jednotky = new Jednotka[100*maxlevel];
+            miraohrozeni = 0;
+            jednotky = new Jednotka[100*maxlevel+50];
 
             gplaneta = new Ellipse
             {
                 Tag = "planeta",
                 Height = velikost,
                 Width = velikost,
-                Fill = NavratBarvy.Navrat(majitel)
+                Fill = NavratBarvy.Navrat(majitel),
+                Stroke = NavratBarvy.Navrat(12),
+                StrokeThickness = 0
             };
             Canvas.SetTop(gplaneta, py - velikost / 2);
             Canvas.SetLeft(gplaneta, px - velikost / 2);
@@ -359,7 +542,7 @@ namespace Auralux
             }
         }
 
-        public Jednotka ZabijJednotku()
+        public void ZabijJednotku()
         {
             Jednotka cozabijim = jednotky[pjednotek - 1];
             cozabijim.SmazZCanvasu();
@@ -367,31 +550,18 @@ namespace Auralux
             pjednotek--;
             player.celkemunits--;
             player.jednotky.Remove(cozabijim);
-            return cozabijim;
         }
 
         public void VyberseGraficky() //vytvori graficky kruh aby se planeta oznacila
         {
-            vyberovykruh = new Ellipse
-            {
-                Tag = "vyberovykruh",
-                Height = velikost,
-                Width = velikost,
-                Fill = NavratBarvy.Navrat(majitel),
-                Stroke = NavratBarvy.Navrat(12),
-                StrokeThickness = 5
-            };
-            Canvas.SetTop(vyberovykruh, py - velikost / 2);
-            Canvas.SetLeft(vyberovykruh, px - velikost / 2);
-            myCanvas.Children.Add(vyberovykruh);
 
-            info.Foreground = NavratBarvy.Navrat(majitel);
-            Canvas.SetZIndex(info, 1);
+            gplaneta.StrokeThickness = 5;
+            //Canvas.SetZIndex(info, 1); //MEMORY LEAK, debilni microsoft????
         }
         
         public void OdeberseGraficky()//odebere kruh 
         {
-            myCanvas.Children.Remove(vyberovykruh);
+            gplaneta.StrokeThickness = 0;
         }
 
         public void InfoVypisPocetVyberu(int kolik) //vypise kolik je vybrano jednotek
@@ -458,26 +628,38 @@ namespace Auralux
             kontrola -= okolik;
             if (kontrola <= 0)
             {
+                velikost = velikost - 20 * (level - 1);
+                gplaneta.Width = velikost;
+                gplaneta.Height = velikost;
                 zdravi = 0;
                 majitel = 0;
                 drzitel = 0;
                 kontrola = 0;
+                level = 1;
                 gplaneta.Fill = NavratBarvy.Navrat(0);
                 InfoSmazat();
+                Canvas.SetTop(gplaneta, py - velikost / 2);
+                Canvas.SetLeft(gplaneta, px - velikost / 2);
             }
         }
 
-        public void OdesliJednotky(int kolik, Planeta planetakam)
+        public int OdesliJednotky(int kolik, Planeta planetakam)
         {
+            int puvodnekolik = kolik;
+            if (planetakam.majitel == majitel)
+            {
+                kolik = Math.Min(kolik, planetakam.level * 100 - (planetakam.jednotekcobude + planetakam.pjednotek));
+                planetakam.jednotekcobude += kolik;
+            }
+            kolik = Math.Min(kolik, pjednotek);
             for (int i = 0; i < kolik; i++)
             {
                 pjednotek--; //snizim pocet jednotek
                 jednotky[pjednotek].PoslatNaCestu(planetakam.px, planetakam.py, planetakam); //poslu jednotku
                 jednotky[pjednotek] = null;
             }
-            OdeberseGraficky(); //graficky se odebere vybrani
-            InfoSmazat();  //samze info - asi zbycne to tu je
             vybrana = false;
+            return puvodnekolik-kolik;
         }
 
         public void Lecit()
@@ -500,17 +682,18 @@ namespace Auralux
 
         public void Upgrade()
         {
-            if (level != maxlevel && pjednotek>30*level && zdravi == 100*level)
+            if (level != maxlevel && pjednotek>20*level && zdravi == 100*level)
             {
                 level++;
                 velikost += 20;
                 zdravi = 100 * level;
+                
                 gplaneta.Height = velikost;
                 gplaneta.Width = velikost;
                 Canvas.SetTop(gplaneta, py - velikost / 2);
                 Canvas.SetLeft(gplaneta, px - velikost / 2);
-
-                for (int i = 0; i<30*(level-1); i++)
+                
+                for (int i = 0; i<20*(level-1); i++)
                 {
                     ZabijJednotku();
                 }
@@ -552,7 +735,7 @@ namespace Auralux
         public Planeta domovskaplaneta;
         private Canvas myCanvas;
 
-        public Jednotka(Canvas myCanvas, Planeta planeta, int majitel, int px, int py, int stredx, int stredy)
+        public Jednotka(Canvas myCanvas, Planeta planeta, int majitel, int px, int py, int stredx, int stredy, Random rand)
         {
 
             this.px = stredx;
@@ -563,7 +746,7 @@ namespace Auralux
             this.player = planeta.player;
             this.obiha = true;
             domovskaplaneta = planeta;
-            this.rand = new Random(); //pro nahodny radian
+            this.rand = rand;
             this.radian = (double)rand.Next(10);
             this.myCanvas = myCanvas;
 
@@ -611,29 +794,32 @@ namespace Auralux
             myCanvas.Children.Remove(gjednotka);
         }
 
-        public void PosunLetu(double rychlostrotace)
+        public void PosunLetu(int rychlost)
         {
+            double rychlostrotace = 0.02 * rychlost;
             int velikost = domovskaplaneta.velikost;
             if (obiha == true) //jednotka obiha
             {
+                
                 radian += rychlostrotace;
-                double sin = Math.Sin(radian);
+                //double sin = Math.Sin(radian);
                 px = (stredx + Math.Cos(radian) * (velikost/2+25)*orb1 - 5);
-                py = (stredy + sin * (velikost/2+25)*orb2 - 5);
-                if (orb1 == 1.1f) 
+                py = (stredy + Math.Sin(radian) * (velikost/2+25)*orb2 - 5);
+                if (false) //bugr s pameti - Alokace sileneho mnozstvi - nuti volat GC - je to pomaly?????? wtf
                 {
-                    gjednotka.Height = 10 + sin * 1.3;
-                    gjednotka.Width = 10 + sin * 1.3;
+                    gjednotka.Height = 10 + Math.Sin(radian) * 1.3;
+                    gjednotka.Width = 10 + Math.Sin(radian) * 1.3;
                 }
                 
                 Canvas.SetTop(gjednotka, py);
                 Canvas.SetLeft(gjednotka, px);
+                
             }
             else if (naceste == true) //Jednotka je na ceste
             {
-                double eukleides = Math.Sqrt((px - kamx) * (px - kamx) + (py - kamy) * (py - kamy));
-                px = (px + ((kamx - px) / eukleides) * 1.5);
-                py = (py + ((kamy - py) / eukleides) * 1.5);
+                //double eukleides = Math.Sqrt((px - kamx) * (px - kamx) + (py - kamy) * (py - kamy));
+                px = (px + ((kamx - px) / Math.Sqrt((px - kamx) * (px - kamx) + (py - kamy) * (py - kamy))) *rychlost);
+                py = (py + ((kamy - py) / Math.Sqrt((px - kamx) * (px - kamx) + (py - kamy) * (py - kamy))) *rychlost);
                 Canvas.SetTop(gjednotka, py);
                 Canvas.SetLeft(gjednotka, px);
                 SrazkaSPlanetou();
@@ -648,6 +834,7 @@ namespace Auralux
             {
                 planetakamletim.jednotky[planetakamletim.pjednotek] = this;
                 planetakamletim.pjednotek++;
+                planetakamletim.jednotekcobude--;
                 obiha = true;
                 naceste = false;
                 //unit.px = unit.planetakamletim.px + unit.planetakamletim.velikost / 2 + 15;
@@ -672,11 +859,8 @@ namespace Auralux
                 {
                     planetakamletim.ZabijJednotku(); //smaze instanci
 
-                    SmazZCanvasu(); //Killnu jednotku co utocila
-                                    
+                    SmazZCanvasu(); //Killnu jednotku co utocila      
                     player.odpadky.Add(this);
-                    Trace.WriteLine(player);
-                    Trace.WriteLine(player.id);
                     px = 0;
                     py = 0;
 
@@ -687,7 +871,7 @@ namespace Auralux
                     player.odpadky.Add(this);
                     px = 0;
                     py = 0;
-                    planetakamletim.UberZdravi(3);
+                    planetakamletim.UberZdravi(5);
 
                 }
 
@@ -698,7 +882,7 @@ namespace Auralux
                 player.odpadky.Add(this);
                 px = 0;
                 py = 0;
-                planetakamletim.ObsazovaniPrazdne(3, player);
+                planetakamletim.ObsazovaniPrazdne(5, player);
             }
             if (vzdalenostodplanety < planetakamletim.velikost/2 + 5 && planetakamletim.majitel == 0 && planetakamletim.drzitel == majitel) //jednotka se srazila s neobsazenou planetou s vlastni kontrolou
             {
