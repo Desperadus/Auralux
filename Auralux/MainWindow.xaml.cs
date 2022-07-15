@@ -25,7 +25,7 @@ namespace Auralux
         DispatcherTimer Timer = new DispatcherTimer();
         int pticku = 0; //kolikrat se spustil engine (ticknul)
         int rychlost = 1;
-        int lvl = 1;
+        int lvl;
         Hrac hrac;
         int velikost; //obecna zakladni velikost
         int procent; //kolik procent jednotek je vybrano
@@ -34,9 +34,11 @@ namespace Auralux
         Planeta[] planety;
         Planeta vybrano; //planeta vybrana klikem
         Random rand;
-        public MainWindow()
+        public MainWindow(int lvl)
         {
             InitializeComponent();
+            this.lvl = lvl;
+
             Timer.Tick += Engine;
             Timer.Interval = TimeSpan.FromMilliseconds(15);
             System.Runtime.GCSettings.LatencyMode = System.Runtime.GCLatencyMode.LowLatency;
@@ -200,7 +202,7 @@ namespace Auralux
 
             if (lvl == 0)
             {
-                planety = new Planeta[20];   //Vytvoreni planet
+                planety = new Planeta[4];   //Vytvoreni planet
                 int pocetplanet = 4;
                 int pocetbotu = 2;
                 hrac = new Hrac(myCanvas, planety, 1);
@@ -233,8 +235,7 @@ namespace Auralux
 
             if (lvl == 1)
             {
-                planety = new Planeta[20];   //Vytvoreni planet
-                int pocetplanet = 4;
+                planety = new Planeta[7];   //Vytvoreni planet
                 int pocetbotu = 2;
                 hrac = new Hrac(myCanvas, planety, 1);
                 boti = new Bot[pocetbotu];
