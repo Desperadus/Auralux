@@ -148,8 +148,13 @@ namespace Auralux
         {
             if (e.Key == Key.Add) 
             {
-                rychlost = (rychlost + 1) % 4;
+                rychlost = (rychlost + 1) % 5;
                 if (rychlost == 0) rychlost = 1;
+            }
+            else if (e.Key == Key.Subtract)
+            {
+                rychlost = (rychlost - 1) % 5;
+                if (rychlost <= 0) rychlost = 1;
             }
             else Trace.WriteLine(e.Key);
         }
@@ -452,11 +457,11 @@ namespace Auralux
 
                     else if (soused.majitel == id && rand.Next(100) > 10) //soused jsem ja
                     {
-                        if (planeta.miraohrozeni < soused.miraohrozeni || soused.zdravi < planeta.zdravi && planeta.pjednotek>20)
+                        if (planeta.miraohrozeni < soused.miraohrozeni || soused.zdravi < planeta.zdravi && planeta.pjednotek>20 && rand.Next(100) > 30)
                         {
                             planeta.OdesliJednotky(planeta.pjednotek / 2, soused);
                         }
-                        if (planeta.miraohrozeni == soused.miraohrozeni && (planeta.pjednotek - soused.pjednotek)>10)
+                        if (planeta.miraohrozeni == soused.miraohrozeni && (planeta.pjednotek - soused.pjednotek)>10 && rand.Next(100) > 50)
                         {
                             planeta.OdesliJednotky((planeta.pjednotek - soused.pjednotek) / 2, soused);
                         }

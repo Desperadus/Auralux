@@ -1,0 +1,82 @@
+﻿<Window x:Class="Auralux.WindowMenu"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Auralux"
+        mc:Ignorable="d"
+        Title="Auralux Hra" Height="784" Width="1200">
+    <Canvas Name="myCanvas" Focusable="True" Background="#FF151313" MouseDown="Kliknuti">
+        <Label Content="Vítejte v Auraluxu" Canvas.Left="318" Canvas.Top="30" Height="211" Width="564" RenderTransformOrigin="0.506,0.49" Foreground="White" HorizontalAlignment="Left" VerticalAlignment="Top" FontFamily="Gabriola" FontSize="100"/>
+        <Button Content="Jak hrát" Canvas.Left="1002" Canvas.Top="86" Click="Button_Click" Width="90" Height="50" FontSize="30" Background="#FFEDEDED" FontFamily="Gabriola" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+        <Button Content="Credits" Canvas.Left="92" Canvas.Top="86" Width="90" Height="50" Background="#FFEDEDED" FontSize="30" FontFamily="Gabriola" Click="Button_Click_1" />
+        <Rectangle Height="8" Canvas.Left="545" Stroke="White" Canvas.Top="439" Width="298" HorizontalAlignment="Left" VerticalAlignment="Top" Fill="White" RenderTransformOrigin="0.5,0.5">
+            <Rectangle.RenderTransform>
+                <TransformGroup>
+                    <ScaleTransform/>
+                    <SkewTransform/>
+                    <RotateTransform Angle="-8.3"/>
+                    <TranslateTransform/>
+                </TransformGroup>
+            </Rectangle.RenderTransform>
+        </Rectangle>
+        <Rectangle Height="8" Canvas.Left="611" Stroke="White" Canvas.Top="535" Width="230" Fill="White" RenderTransformOrigin="0.5,0.5" HorizontalAlignment="Left" VerticalAlignment="Top">
+            <Rectangle.RenderTransform>
+                <TransformGroup>
+                    <ScaleTransform/>
+                    <SkewTransform/>
+                    <RotateTransform Angle="-8.3"/>
+                    <TranslateTransform/>
+                </TransformGroup>
+            </Rectangle.RenderTransform>
+        </Rectangle>
+        <Rectangle Height="9" Canvas.Left="522" Stroke="White" Canvas.Top="506" Width="109" Fill="White" RenderTransformOrigin="0.5,0.5" HorizontalAlignment="Center" VerticalAlignment="Center">
+            <Rectangle.RenderTransform>
+                <TransformGroup>
+                    <ScaleTransform/>
+                    <SkewTransform/>
+                    <RotateTransform Angle="54.381"/>
+                    <TranslateTransform/>
+                </TransformGroup>
+            </Rectangle.RenderTransform>
+        </Rectangle>
+        <Rectangle Height="9" Canvas.Left="787" Stroke="White" Canvas.Top="469" Width="109" Fill="White" RenderTransformOrigin="0.5,0.5" HorizontalAlignment="Left" VerticalAlignment="Top">
+            <Rectangle.RenderTransform>
+                <TransformGroup>
+                    <ScaleTransform/>
+                    <SkewTransform/>
+                    <RotateTransform Angle="-86.442"/>
+                    <TranslateTransform/>
+                </TransformGroup>
+            </Rectangle.RenderTransform>
+        </Rectangle>
+        <Rectangle Height="9" Canvas.Left="414" Stroke="White" Canvas.Top="433" Width="139" Fill="White" RenderTransformOrigin="0.5,0.5" HorizontalAlignment="Left" VerticalAlignment="Top">
+            <Rectangle.RenderTransform>
+                <TransformGroup>
+                    <ScaleTransform/>
+                    <SkewTransform/>
+                    <RotateTransform Angle="26.794"/>
+                    <TranslateTransform/>
+                </TransformGroup>
+            </Rectangle.RenderTransform>
+        </Rectangle>
+        <Rectangle Height="9" Canvas.Left="312" Stroke="White" Canvas.Top="422" Width="109" Fill="White" RenderTransformOrigin="0.5,0.5" HorizontalAlignment="Left" VerticalAlignment="Top">
+            <Rectangle.RenderTransform>
+                <TransformGroup>
+                    <ScaleTransform/>
+                    <SkewTransform/>
+                    <RotateTransform Angle="-20.561"/>
+                    <TranslateTransform/>
+                </TransformGroup>
+            </Rectangle.RenderTransform>
+        </Rectangle>
+        <Button Content="1" Canvas.Left="299" Canvas.Top="433" Width="26" Height="26" Background="#FFFDFFD7" FontSize="16" FontFamily="Yu Gothic Medium" Click="Button_Click_2"/>
+        <Button Content="2" Canvas.Left="402" Canvas.Top="396" Width="26" Height="26" Background="#FFFDFFD7" FontSize="16" FontFamily="Yu Gothic Medium" HorizontalAlignment="Left" VerticalAlignment="Top" Click="Button_Click_3"/>
+        <Button Content="3" Canvas.Left="531" Canvas.Top="454" Width="26" Height="26" Background="#FFFDFFD7" FontSize="16" FontFamily="Yu Gothic Medium" HorizontalAlignment="Left" VerticalAlignment="Top" Click="Button_Click_4"/>
+        <Button Content="4" Canvas.Left="829" Canvas.Top="413" Width="26" Height="26" Background="#FFFDFFD7" FontSize="16" FontFamily="Yu Gothic Medium" HorizontalAlignment="Left" VerticalAlignment="Top" Click="Button_Click_5"/>
+        <Button Content="5" Canvas.Left="594" Canvas.Top="541" Width="26" Height="26" Background="#FFFDFFD7" FontSize="16" FontFamily="Yu Gothic Medium" HorizontalAlignment="Left" VerticalAlignment="Top" Click="Button_Click_6"/>
+        <Button Content="6" Canvas.Left="824" Canvas.Top="511" Width="26" Height="26" Background="#FFFDFFD7" FontSize="16" FontFamily="Yu Gothic Medium" HorizontalAlignment="Left" VerticalAlignment="Top" Click="Button_Click_7"/>
+    </Canvas>
+
+
+</Window>
