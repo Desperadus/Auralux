@@ -5,8 +5,8 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Auralux"
         mc:Ignorable="d"
-        Title="Auralux Hra" Height="784" Width="1200">
-    <Canvas Name="myCanvas" Focusable="True" Background="#FF151313" MouseLeftButtonDown="Klik" MouseRightButtonDown="Unklik">
+        Title="Auralux Hra" Height="784" Width="1200" KeyDown="ZmacklaKlavesa">
+    <Canvas Name="myCanvas" Focusable="True" Background="#FF151313" MouseLeftButtonDown="Klik" MouseRightButtonDown="Unklik" MouseWheel="Upgrade"/>
 
-    </Canvas>
+
 </Window>
