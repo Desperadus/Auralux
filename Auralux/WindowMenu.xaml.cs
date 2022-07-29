@@ -52,27 +52,31 @@ namespace Auralux
 
         private void Button_Click_3(object sender, RoutedEventArgs e)
         {
-
+            var mainwin = new MainWindow(2);
+            mainwin.Show();
         }
 
         private void Button_Click_4(object sender, RoutedEventArgs e)
         {
-
+            var mainwin = new MainWindow(3);
+            mainwin.Show();
         }
 
         private void Button_Click_5(object sender, RoutedEventArgs e)
         {
-
+            var mainwin = new MainWindow(4);
+            mainwin.Show();
         }
 
         private void Button_Click_6(object sender, RoutedEventArgs e)
         {
-
+            var mainwin = new MainWindow(5);
+            mainwin.Show();
         }
 
         private void Button_Click_7(object sender, RoutedEventArgs e)
         {
-
+            MessageBox.Show("Vaše zdarma zkušební verze tady pro Vás bohužel skončila, pro odemknutí tohoto levelu pošlete 10$ na tento účet: 2200022/0300");
         }
     }
 }
