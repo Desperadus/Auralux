@@ -7,4 +7,16 @@
     <UseWPF>true</UseWPF>
   </PropertyGroup>
 
+  <ItemGroup>
+    <None Remove="deepspace.jpeg" />
+    <None Remove="hubblevesmir.jpeg" />
+    <None Remove="mlhovina.jpeg" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="deepspace.jpeg" />
+    <EmbeddedResource Include="hubblevesmir.jpeg" />
+    <EmbeddedResource Include="mlhovina.jpeg" />
+  </ItemGroup>
+
 </Project>

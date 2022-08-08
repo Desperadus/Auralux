@@ -25,7 +25,7 @@ namespace Auralux
         {
             InitializeComponent();
 
-            background.ImageSource = new BitmapImage(new Uri(@"C:\Users\tomasjelinek\source\repos\Auralux\Auralux\mlhovina.jpeg"));
+            background.ImageSource = new BitmapImage(new Uri(@"mlhovina.jpeg", UriKind.Relative));
             myCanvas.Background = background;
         }
 

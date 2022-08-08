@@ -41,7 +41,7 @@ namespace Auralux
         {
             InitializeComponent();
             this.lvl = lvl;
-            background.ImageSource = new BitmapImage(new Uri(@"C:\Users\tomasjelinek\source\repos\Auralux\Auralux\hubblevesmir.jpeg")); //nastavi pozadi na foto z Hublova teleskopu - POZOR mozna nutno zmenit drahu u vas
+            background.ImageSource = new BitmapImage(new Uri("hubblevesmir.jpeg", UriKind.Relative)); //nastavi pozadi na foto z Hublova teleskopu - POZOR mozna nutno zmenit drahu u vas
             myCanvas.Background = background;
 
             Timer.Tick += Engine;
@@ -581,12 +581,12 @@ namespace Auralux
                         kolikmamokolojednotek += soused.pjednotek;
                         mojeplanetyokolo.Add(soused);
                     }
-                    if (kolikmamokolojednotek > planeta.pjednotek+ 20*planeta.level + planeta.zdravi/5 && rand.Next(100)>80) //nastane s 20% sanci jeli mozno utocit dle podminky
+                    if (kolikmamokolojednotek > planeta.pjednotek+ 25*planeta.level + planeta.zdravi/5 && rand.Next(100)>80) //nastane s 20% sanci jeli mozno utocit dle podminky
                     {
                         
                         foreach (Planeta mojeplaneta in mojeplanetyokolo)
                         {
-                            kolikseneposlalo += mojeplaneta.OdesliJednotky(((planeta.pjednotek + 20 * planeta.level + planeta.zdravi / 5) / mojeplanetyokolo.Count()) + kolikseneposlalo, planeta);
+                            kolikseneposlalo += mojeplaneta.OdesliJednotky(((planeta.pjednotek + 25 * planeta.level + planeta.zdravi / 5) / mojeplanetyokolo.Count()) + kolikseneposlalo, planeta);
                         }
                     }
                 }
@@ -606,11 +606,11 @@ namespace Auralux
                 {
                     int znamenko = 1;
                     if (soused.majitel == 0 && soused.drzitel == id) znamenko = -1;
-                    if (soused.majitel == 0 && planeta.pjednotek > znamenko*(soused.kontrola / 5) + 20 && (rand.Next(100) > 50 || planeta.level == planeta.maxlevel)) //soused je 0, zabirani neobsazeny
+                    if (soused.majitel == 0 && planeta.pjednotek > znamenko*(soused.kontrola / 5) + 20 && (rand.Next(100) > 80 || planeta.level == planeta.maxlevel)) //soused je 0, zabirani neobsazeny
                     {
                         planeta.OdesliJednotky(soused.kontrola / 5 + 20 + rand.Next(5), soused);
                     }
-                    else if (planeta.pjednotek > 20*planeta.level && planeta.level != planeta.maxlevel && rand.Next(100) > 15) planeta.Upgrade(); //upgraduje
+                    else if (planeta.pjednotek > 20*planeta.level && planeta.level != planeta.maxlevel && rand.Next(100) > 10) planeta.Upgrade(); //upgraduje
 
                     else if (soused.majitel == id && rand.Next(100) > 10) //soused jsem ja
                     {
@@ -697,7 +697,7 @@ namespace Auralux
 
         public void VytvorJednotku(Jednotka jednotka) //prida jendotku do pole jednotek
         {
-            if (pjednotek < level * 100)
+            if (pjednotek < level * 100) //hranice dokdy tvorit jednotky
             {
                 jednotky[pjednotek] = jednotka;
                 pjednotek++;
